@@ -2,6 +2,7 @@ import styles from "./Product.module.css";
 import { useContext } from "react";
 import { CartContext } from "../context/CartContext";
 
+
 export function Product({ product }) {
 
   const { addToCart } = useContext(CartContext);
