@@ -1,30 +1,30 @@
 import "./styles/theme.css";
 import "./styles/global.css";
 import { Header } from "./components/Header";
-import { ProductList } from "./components/ProductList";
-import { Cart } from "./components/Cart";
-import { Route, Routes } from "react-router";
+import { Routes, Route } from "react-router";
 import { CartProvider } from "./context/CartContext";
-import { SessionProvider } from "./context/SessionContext"; // <-- IMPORTANTE
-import { ToastContainer } from "react-toastify";
-import { Login } from "./components/Login";
-import { User } from "./components/User";
+import { Cart } from "./components/Cart";
+import { ProductList } from "./components/ProductList";
+import { Log+in } from "./components/Login";
+import { Signup } from "./components/Signup";
+import { Estoque } from "./components/Estoque";
+import { ToastContainer } from 'react-toastify';
+import { User } from "./components/user";
+import { SessionProvider} from "./context/SessionContext";
 
 export default function App() {
   return (
     <>
       <ToastContainer />
-
-      {/* ENVOLVER TUDO COM O SessionProvider */}
       <SessionProvider>
         <CartProvider>
           <Header />
-
           <Routes>
             <Route path="/" element={<ProductList />} />
             <Route path="/cart" element={<Cart />} />
-            <Route path="/signin" element={<Login value="signin" />} />
-            <Route path="/register" element={<Login value="register" />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/stock" element={<Estoque />} />
             <Route path="/user" element={<User />} />
           </Routes>
         </CartProvider>
