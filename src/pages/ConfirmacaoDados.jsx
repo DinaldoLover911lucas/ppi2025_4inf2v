@@ -1,57 +1,152 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../utils/supabase";
-import styles from "./ConfirmacaoDados.module.css";
+import { useNavigate } from "react-router"; 
+import styles from "./ConfirmacaoDados.module.css"; // Certifique-se que o arquivo existe ou remova esta linha
 
 export function ConfirmacaoDados() {
-  const [campos, setCampos] = useState([]);
+  const [tipoServico, setTipoServico] = useState(null);
+  const [erro, setErro] = useState(null);
   const [valores, setValores] = useState({});
+  const navigate = useNavigate();
+
+  // Definição dos campos para cada tipo de serviço
+  const configuracaoCampos = {
+    entrega: [
+      { nome: "Endereço de Entrega", chave: "endereco", tipo: "text" },
+      { nome: "Telefone", chave: "tel", tipo: "tel" },
+      { nome: "Ponto de Referência", chave: "referencia", tipo: "text" }
+    ],
+    restaurante: [
+      { nome: "Número da Mesa", chave: "mesa", tipo: "number" },
+      { nome: "Nome do Cliente", chave: "cliente", tipo: "text" },
+      { nome: "Observação (Opcional)", chave: "obs", tipo: "text" }
+    ],
+    agendamento: [
+      { nome: "Data do Serviço", chave: "data", tipo: "date" },
+      { nome: "Horário", chave: "hora", tipo: "time" },
+      { nome: "Nome do Profissional", chave: "profissional", tipo: "text" }
+    ]
+  };
 
   useEffect(() => {
-    async function carregar() {
-      const { data: config } = await supabase
-        .from("configuracao_servico")
-        .select("*")
-        .eq("ativo", true)
-        .single();
+    async function carregarConfiguracao() {
+      try {
+        // Busca a configuração ativa mais recente no Supabase
+        const { data, error } = await supabase
+          .from("configuracao_servico")
+          .select("tipo")
+          .eq("ativo", true)
+          .order("criado_em", { ascending: false })
+          .limit(1);
 
-      const { data } = await supabase
-        .from("campos_confirmacao")
-        .select("*")
-        .eq("tipo_servico", config.tipo);
-
-      setCampos(data);
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          setTipoServico(data[0].tipo);
+        } else {
+          setErro("Nenhuma configuração ativa encontrada no Admin.");
+        }
+      } catch (err) {
+        setErro("Erro ao carregar configurações: " + err.message);
+      }
     }
 
-    carregar();
+    carregarConfiguracao();
   }, []);
 
-  function handleChange(nome, valor) {
-    setValores({ ...valores, [nome]: valor });
+  function handleChange(chave, valor) {
+    setValores({ ...valores, [chave]: valor });
   }
 
-  function handleConfirmar() {
-    window.location.href = "/confirmacao";
+  function handleConfirmar(e) {
+    e.preventDefault();
+    console.log("Dados enviados:", valores);
+    // Aqui você pode salvar no localStorage se precisar usar na próxima página
+    localStorage.setItem("dados_confirmacao", JSON.stringify(valores));
+    navigate("/confirmacao");
   }
+
+  // Telas de estado (Carregando ou Erro)
+  if (erro) return <div style={{ marginTop: "160px", color: "red", textAlign: "center" }}>{erro}</div>;
+  if (!tipoServico) return <div style={{ marginTop: "160px", color: "white", textAlign: "center" }}>Carregando formulário...</div>;
+
+  const camposParaExibir = configuracaoCampos[tipoServico] || [];
 
   return (
-    <div className={styles.container}>
-      <h2>Confirme seus dados</h2>
+    <div style={{ 
+      marginTop: "140px", 
+      padding: "20px", 
+      maxWidth: "450px", 
+      marginInline: "auto",
+      background: "#1e1e1e",
+      borderRadius: "12px",
+      color: "white",
+      boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+      fontFamily: "sans-serif"
+    }}>
+      <h2 style={{ textAlign: "center", marginBottom: "10px" }}>Confirmar Dados</h2>
+      <p style={{ textAlign: "center", color: "#aaa", marginBottom: "20px" }}>
+        Tipo de pedido: <strong>{tipoServico.toUpperCase()}</strong>
+      </p>
 
-      {campos.map((campo) => (
-        <div key={campo.id} className={styles.field}>
-          <label>{campo.nome}</label>
-          <input
-            required={campo.obrigatorio}
-            onChange={(e) => handleChange(campo.nome, e.target.value)}
-          />
-        </div>
-      ))}
+      <form onSubmit={handleConfirmar}>
+        {camposParaExibir.map((campo) => (
+          <div key={campo.chave} style={{ marginBottom: "15px" }}>
+            <label style={{ display: "block", marginBottom: "5px", fontSize: "14px" }}>
+              {campo.nome}
+            </label>
+            <input
+              type={campo.tipo}
+              required
+              placeholder={`Digite aqui...`}
+              onChange={(e) => handleChange(campo.chave, e.target.value)}
+              style={{ 
+                width: "100%", 
+                padding: "12px", 
+                borderRadius: "6px", 
+                border: "1px solid #333",
+                background: "#2d2d2d",
+                color: "white",
+                boxSizing: "border-box"
+              }}
+            />
+          </div>
+        ))}
 
-      <button onClick={handleConfirmar}>Confirmar</button>
+        <button 
+          type="submit"
+          style={{
+            width: "100%",
+            padding: "14px",
+            backgroundColor: "#007bff",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontWeight: "bold",
+            fontSize: "16px",
+            marginTop: "10px"
+          }}
+        >
+          Finalizar e Confirmar
+        </button>
 
-      <button onClick={() => window.location.href = "/confirmacao"}>
-  Confirmar dados
-</button>
+        <button 
+          type="button"
+          onClick={() => navigate(-1)}
+          style={{
+            width: "100%",
+            background: "transparent",
+            color: "#aaa",
+            border: "none",
+            marginTop: "10px",
+            cursor: "pointer",
+            textDecoration: "underline"
+          }}
+        >
+          Voltar
+        </button>
+      </form>
     </div>
   );
 }
