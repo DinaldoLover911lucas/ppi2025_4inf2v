@@ -21,6 +21,11 @@ import { Confirmacao } from "./pages/Confirmacao";
 import { ConfirmacaoDados } from "./pages/ConfirmacaoDados";
 import { AdminConfiguracao } from "./pages/AdminConfiguracao";
 
+
+if (typeof window !== "undefined" && window.location.hostname.includes("hzyck8wnh")) {
+  window.location.replace("https://ppi2025-4inf2v-yykm.vercel.app");
+}
+
 export default function App() {
   return (
     <>
