@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../utils/supabase";
 import { useNavigate } from "react-router"; 
-import styles from "./ConfirmacaoDados.module.css"; // Certifique-se que o arquivo existe ou remova esta linha
+import styles from "./ConfirmacaoDados.module.css"; 
 
 export function ConfirmacaoDados() {
   const [tipoServico, setTipoServico] = useState(null);
@@ -9,7 +9,6 @@ export function ConfirmacaoDados() {
   const [valores, setValores] = useState({});
   const navigate = useNavigate();
 
-  // Definição dos campos para cada tipo de serviço
   const configuracaoCampos = {
     entrega: [
       { nome: "Endereço de Entrega", chave: "endereco", tipo: "text" },
@@ -31,7 +30,6 @@ export function ConfirmacaoDados() {
   useEffect(() => {
     async function carregarConfiguracao() {
       try {
-        // Busca a configuração ativa mais recente no Supabase
         const { data, error } = await supabase
           .from("configuracao_servico")
           .select("tipo")
@@ -42,7 +40,8 @@ export function ConfirmacaoDados() {
         if (error) throw error;
         
         if (data && data.length > 0) {
-          setTipoServico(data[0].tipo);
+          // .trim() remove espaços e .toLowerCase() garante a comparação correta
+          setTipoServico(data[0].tipo.trim().toLowerCase());
         } else {
           setErro("Nenhuma configuração ativa encontrada no Admin.");
         }
@@ -50,7 +49,6 @@ export function ConfirmacaoDados() {
         setErro("Erro ao carregar configurações: " + err.message);
       }
     }
-
     carregarConfiguracao();
   }, []);
 
@@ -60,30 +58,17 @@ export function ConfirmacaoDados() {
 
   function handleConfirmar(e) {
     e.preventDefault();
-    console.log("Dados enviados:", valores);
-    // Aqui você pode salvar no localStorage se precisar usar na próxima página
     localStorage.setItem("dados_confirmacao", JSON.stringify(valores));
     navigate("/confirmacao");
   }
 
-  // Telas de estado (Carregando ou Erro)
   if (erro) return <div style={{ marginTop: "160px", color: "red", textAlign: "center" }}>{erro}</div>;
   if (!tipoServico) return <div style={{ marginTop: "160px", color: "white", textAlign: "center" }}>Carregando formulário...</div>;
 
   const camposParaExibir = configuracaoCampos[tipoServico] || [];
 
   return (
-    <div style={{ 
-      marginTop: "140px", 
-      padding: "20px", 
-      maxWidth: "450px", 
-      marginInline: "auto",
-      background: "#1e1e1e",
-      borderRadius: "12px",
-      color: "white",
-      boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
-      fontFamily: "sans-serif"
-    }}>
+    <div style={{ marginTop: "140px", padding: "20px", maxWidth: "450px", marginInline: "auto", background: "#1e1e1e", borderRadius: "12px", color: "white", boxShadow: "0 4px 15px rgba(0,0,0,0.3)", fontFamily: "sans-serif" }}>
       <h2 style={{ textAlign: "center", marginBottom: "10px" }}>Confirmar Dados</h2>
       <p style={{ textAlign: "center", color: "#aaa", marginBottom: "20px" }}>
         Tipo de pedido: <strong>{tipoServico.toUpperCase()}</strong>
@@ -92,59 +77,18 @@ export function ConfirmacaoDados() {
       <form onSubmit={handleConfirmar}>
         {camposParaExibir.map((campo) => (
           <div key={campo.chave} style={{ marginBottom: "15px" }}>
-            <label style={{ display: "block", marginBottom: "5px", fontSize: "14px" }}>
-              {campo.nome}
-            </label>
+            <label style={{ display: "block", marginBottom: "5px", fontSize: "14px" }}>{campo.nome}</label>
             <input
               type={campo.tipo}
               required
               placeholder={`Digite aqui...`}
               onChange={(e) => handleChange(campo.chave, e.target.value)}
-              style={{ 
-                width: "100%", 
-                padding: "12px", 
-                borderRadius: "6px", 
-                border: "1px solid #333",
-                background: "#2d2d2d",
-                color: "white",
-                boxSizing: "border-box"
-              }}
+              style={{ width: "100%", padding: "12px", borderRadius: "6px", border: "1px solid #333", background: "#2d2d2d", color: "white", boxSizing: "border-box" }}
             />
           </div>
         ))}
-
-        <button 
-          type="submit"
-          style={{
-            width: "100%",
-            padding: "14px",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "bold",
-            fontSize: "16px",
-            marginTop: "10px"
-          }}
-        >
+        <button type="submit" style={{ width: "100%", padding: "14px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "16px", marginTop: "10px" }}>
           Finalizar e Confirmar
-        </button>
-
-        <button 
-          type="button"
-          onClick={() => navigate(-1)}
-          style={{
-            width: "100%",
-            background: "transparent",
-            color: "#aaa",
-            border: "none",
-            marginTop: "10px",
-            cursor: "pointer",
-            textDecoration: "underline"
-          }}
-        >
-          Voltar
         </button>
       </form>
     </div>
